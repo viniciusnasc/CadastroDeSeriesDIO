@@ -53,7 +53,7 @@ namespace CadastroDeSeries.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Genero,Titulo,Descricao,Ano")] Serie serie)
+        public async Task<IActionResult> Create([Bind("Id,Genero,Titulo,Ano")] Serie serie)
         {
             if (ModelState.IsValid)
             {
