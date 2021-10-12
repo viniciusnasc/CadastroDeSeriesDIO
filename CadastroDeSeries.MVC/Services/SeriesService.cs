@@ -2,7 +2,7 @@
 using CadastroDeSeries.MVC.Models;
 using CadastroDeSeries.MVC.Models.Enums;
 using CadastroDeSeries.MVC.Services.Exceptions;
-using System;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,38 +18,46 @@ namespace CadastroDeSeries.MVC.Services
             _context = context;
         }
 
-        public List<Serie> ListarTudo()
+        public async Task<List<Serie>> ListarTudoAsync()
         {
-            return _context.Serie.ToList();
+            return await _context.Serie.ToListAsync();
         }
 
-        public void Inserir(Serie serie)
+        public async Task InserirAsync(Serie serie)
         {
             _context.Add(serie);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public Serie SelecionarPorId(int id)
+        public async Task<Serie> SelecionarPorIdAsync(int id)
         {
-            return _context.Serie.FirstOrDefault(x => x.Id == id);
+            return await _context.Serie.FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public void Remover(int id)
+        public async Task RemoverAsync(int id)
         {
-            var obj = _context.Serie.Find(id);
-            _context.Serie.Remove(obj);
-            _context.SaveChanges();
+            try
+            {
+                var obj = await _context.Serie.FindAsync(id);
+                _context.Serie.Remove(obj);
+                await _context.SaveChangesAsync();
+            }
+            catch(DbUpdateException e) // Esse caso de exceção seria para controle de exceções de integridade referencial, não existe nesse projeto, mas deixei aqui para visualizações futuras
+            {
+                throw new IntegrityException(e.Message);
+            }
         }
 
-        public void Update(Serie serie)
+        public async Task UpdateAsync(Serie serie)
         {
-            if (!_context.Serie.Any(x => x.Id == serie.Id))
+            bool hasAny = await _context.Serie.AnyAsync(x => x.Id == serie.Id);
+            if (!hasAny)
                 throw new NotFoundException("Id não encontrado");
 
             try
             {
                 _context.Update(serie);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
             catch (DbConcurrencyException e)
             {

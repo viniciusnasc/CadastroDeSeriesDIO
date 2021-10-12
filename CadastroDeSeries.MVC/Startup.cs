@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using CadastroDeSeries.MVC.Data;
 using CadastroDeSeries.MVC.Services;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 namespace CadastroDeSeries.MVC
 {
@@ -34,9 +36,18 @@ namespace CadastroDeSeries.MVC
             services.AddScoped<SeriesService>();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Colocar a localização padrão como USA
+            var enUS = new CultureInfo("en-US");
+            var localizationOptions = new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture(enUS),
+                SupportedCultures = new List<CultureInfo> { enUS },
+                SupportedUICultures = new List<CultureInfo> { enUS }
+            };
+            app.UseRequestLocalization(localizationOptions);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

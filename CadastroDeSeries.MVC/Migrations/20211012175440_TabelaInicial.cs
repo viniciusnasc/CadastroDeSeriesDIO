@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace CadastroDeSeries.MVC.Migrations
 {
-    public partial class initial : Migration
+    public partial class TabelaInicial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

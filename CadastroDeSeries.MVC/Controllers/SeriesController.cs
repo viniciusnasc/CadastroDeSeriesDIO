@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using CadastroDeSeries.MVC.Data;
-using CadastroDeSeries.MVC.Models;
+﻿using CadastroDeSeries.MVC.Models;
 using CadastroDeSeries.MVC.Services;
+using CadastroDeSeries.MVC.Services.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace CadastroDeSeries.MVC.Controllers
 {
@@ -20,69 +17,111 @@ namespace CadastroDeSeries.MVC.Controllers
             _seriesService = seriesService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var list = _seriesService.ListarTudo();
-
+            var list = await _seriesService.ListarTudoAsync();
+            
             return View(list);
         }
 
         public IActionResult Create()
         {
-            var list = _seriesService.ListarGenero();
-            return View();
+            return View(); 
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Serie serie)
+        public async Task<IActionResult> Create(Serie serie)
         {
-            _seriesService.Inserir(serie);
+            if (!ModelState.IsValid)
+                return View(serie);
+
+            await _seriesService.InserirAsync(serie);
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
-                return NotFound();
+                return RedirectToAction(nameof(Error), new { message = "Id não fornecido" });
 
-            var obj = _seriesService.SelecionarPorId(id.Value);
+            var obj = await _seriesService.SelecionarPorIdAsync(id.Value);
             if (obj == null)
-                return NotFound();
+                return RedirectToAction(nameof(Error), new { message = "Id não encontrado" });
 
             return View(obj);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            _seriesService.Remover(id);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _seriesService.RemoverAsync(id);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (IntegrityException e)
+            {
+                return RedirectToAction(nameof(Error), new { message = e.Message });
+            }
         }
 
-        public IActionResult Details(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
-                return NotFound();
-
-            var obj = _seriesService.SelecionarPorId(id.Value);
+                return RedirectToAction(nameof(Error), new { message = "Id não fornecido" });
+             
+            var obj = await _seriesService.SelecionarPorIdAsync(id.Value);
             if (obj == null)
-                return NotFound();
+                return RedirectToAction(nameof(Error), new { message = "Id não encontrado" });
 
             return View(obj);
         }
 
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
-                return NotFound();
+                return RedirectToAction(nameof(Error), new { message = "Id não fornecido" });
 
-            var obj = _seriesService.SelecionarPorId(id.Value);
+            var obj = await _seriesService.SelecionarPorIdAsync(id.Value);
             if (obj == null)
-                return NotFound();
+                return RedirectToAction(nameof(Error), new { message = "Id não encontrado" });
 
             return View(obj);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int?id, Serie serie)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(serie);
+            }
+
+            if (id != serie.Id)
+                return RedirectToAction(nameof(Error), new { message = "Id não corresponde" });
+
+            try
+            {
+                await _seriesService.UpdateAsync(serie);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (ApplicationException e)
+            {
+                return RedirectToAction(nameof(Error), new { message = e.Message });
+            }
+        }
+
+        public IActionResult Error(string message)
+        {
+            ErrorViewModel viewModel = new()
+            {
+                Message = message,
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            };
+            return View(viewModel);
         }
     }
 }

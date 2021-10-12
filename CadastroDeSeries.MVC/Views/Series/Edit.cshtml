@@ -1,10 +1,10 @@
 ﻿@model CadastroDeSeries.MVC.Models.Serie
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar";
 }
 
-<h1>Edit</h1>
+<h1>@ViewData["Title"]</h1>
 
 <h4>Serie</h4>
 <hr />
@@ -20,7 +20,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="Genero" class="control-label"></label>
-                <select asp-for="Genero" class="form-control"></select>
+                <select asp-for="Genero" asp-items="Html.GetEnumSelectList<CadastroDeSeries.MVC.Models.Enums.Genero>()"></select>
                 <span asp-validation-for="Genero" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -46,7 +46,7 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Voltar para a lista de séries</a>
 </div>
 
 @section Scripts {
